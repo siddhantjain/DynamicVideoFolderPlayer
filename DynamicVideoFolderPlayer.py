@@ -5,7 +5,7 @@ import queue
 import sys
 from subprocess import Popen
 
-kFolderPath = "C:\\Users\\siddhaja\\Videos\\"
+kDropboxFolderPath = "C:\\Users\\siddhaja\\Dropbox\\Public\\publish\\"
 kVLCOpenCommand = "\"C:\\Program Files (x86)\\VideoLan\\VLC\\vlc.exe\""
 kTriggerIntervalSeconds = 15
 DETACHED_PROCESS = 0x00000008
@@ -20,8 +20,8 @@ def playVideoInVLC(item):
     print("playVideoInVLC")
     if item is 'desktop.ini':
         return
-    completeFilePath = kFolderPath + item
-    completeCommand = kVLCOpenCommand + " " + completeFilePath
+    completeFilePath = kDropboxFolderPath + item + "\\video.mp4"
+    completeCommand = kVLCOpenCommand + " --fullscreen " + completeFilePath
     print(completeCommand)
     p = Popen(completeCommand,shell=False,stdin=None,stdout=None,stderr=None,close_fds=True,creationflags=DETACHED_PROCESS)
 
@@ -47,10 +47,18 @@ def getVLCProcessID():
     print("getVLCProcessID")
     processIDList =  psutil.pids()
     returnPID = -1;
+    #TBD: Handle exception being thrown if after getting the
+    # pids, one of the process is closed and we are trying to access
+    # it
     for each in processIDList:
-        process = psutil.Process(each)
-        if process.name() == 'vlc.exe':
-            return each
+        try:
+            process = psutil.Process(each)
+            if process is not None:
+                if process.name() == 'vlc.exe':
+                    return each
+        except:
+            continue
+        
 
     return returnPID
     
@@ -68,7 +76,7 @@ def checkForNewVideosInFolder():
     global AllVideosDict
     global NewVideosQueue
     
-    currentFilesDict = dict ([(f, None) for f in os.listdir (kFolderPath)])
+    currentFilesDict = dict ([(f, None) for f in os.listdir (kDropboxFolderPath)])
     addedFilesDict = [f for f in currentFilesDict if not f in AllVideosDict]
     print (currentFilesDict)
     print (addedFilesDict)
@@ -119,7 +127,7 @@ def startScript():
 if __name__ == '__main__':
     print ('Welcome to the amazing dynamic folder player')
     print ('This script will be playing the following folder:')
-    print(kFolderPath)
+    print(kDropboxFolderPath)
 
     print ('Starting the timer...')
     AllVideosDict = dict()
